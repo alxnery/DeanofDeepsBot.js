@@ -46,45 +46,30 @@ thebot.on("message", function(message){
 });
 
 function defaultResponse(message, params){
-	if(params.tts == false)
-	thebot.sendMessage(message.channel, "This bot barely works bro");
-	else
-	thebot.sendTTSMessage(message.channel, "This bot barely works bro");
+	thebot.sendTTSMessage(message.channel, "This bot barely works bro",params);
 };
 
 function hhelp(message, params){
-	if(params.tts == false)
-	thebot.sendMessage(message.channel, 
-		"Current functions are bot, hhelp, johnmadden, peen");
-	else
 	thebot.sendTTSMessage(message.channel,
-		"Current functions are bot, hhelp, johnmadden, peen");
+		"Current functions are bot, hhelp, johnmadden, peen",params);
 };
 
 function invalidparams(message, params){
-	if(params.tts == false)
-	thebot.sendMessage(message.channel, "Parameters are invalid");
-	else
-	thebot.sendTTSMessage(message.channel, "Parameters are invalid");
+	thebot.sendTTSMessage(message.channel, "Parameters are invalid",params);
 };
 
 function johnmadden(message, params){
-	if(params.tts == false)
-	thebot.sendMessage(message.channel,
-	 "johnmadden johnmadden johnmadden johnmadden");
-	else
 	thebot.sendTTSMessage(message.channel,
-	 "johnmadden johnmadden johnmadden johnmadden");
+	 "johnmadden johnmadden johnmadden johnmadden",params);
 };
 
 function peenpoon(message, params){
-	if(params.tts == false)
-	thebot.sendMessage(message.channel,
-		"poon!");
-	else
-	thebot.sendTTSMessage(message.channel, "poon!");
+	thebot.sendTTSMessage(message.channel, "poon!",params);
 };
 
-function sendTTSMessage(destination, message){
+function sendTTSMessage(destination, message,params){
+	if(params.tts == true)
 	thebot.sendMessage(destination, message, {"tts": "true"});
+	else
+	thebot.sendMessage(destination, message);
 };
