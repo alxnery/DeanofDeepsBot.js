@@ -16,6 +16,7 @@ thebot.on("message", function(message){
 		var argument = message.content.split(" ");
 		switch(argument[0].toLowerCase()){
 			case "!bot":
+				console.log(params.tts);
 				defaultResponse(message, params);
 				break;
 			case "!hhelp":
@@ -46,30 +47,33 @@ thebot.on("message", function(message){
 });
 
 function defaultResponse(message, params){
-	thebot.sendTTSMessage(message.channel, "This bot barely works bro",params);
+	sendTSMessage(message.channel, "This bot barely works bro",params);
 };
 
 function hhelp(message, params){
-	thebot.sendTTSMessage(message.channel,
+	sendTSMessage(message.channel,
 		"Current functions are bot, hhelp, johnmadden, peen",params);
 };
 
 function invalidparams(message, params){
-	thebot.sendTTSMessage(message.channel, "Parameters are invalid",params);
+	sendTSMessage(message.channel, message.content.slice(1).concat(" is an invalid parameter"), params);
 };
 
 function johnmadden(message, params){
-	thebot.sendTTSMessage(message.channel,
+	sendTSMessage(message.channel,
 	 "johnmadden johnmadden johnmadden johnmadden",params);
 };
 
 function peenpoon(message, params){
-	thebot.sendTTSMessage(message.channel, "poon!",params);
+	sendTSMessage(message.channel, "poon!",params);
 };
 
-function sendTTSMessage(destination, message,params){
-	if(params.tts == true)
-	thebot.sendMessage(destination, message, {"tts": "true"});
-	else
+function sendTSMessage(destination, message,params){
+	console.log(params.tts);
+	if( params.tts == false){
 	thebot.sendMessage(destination, message);
+	}
+	else{
+	thebot.sendMessage(destination, message, {"tts":"true"});
+	}
 };
