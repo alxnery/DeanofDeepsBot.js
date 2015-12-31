@@ -1,0 +1,16 @@
+{
+	"Commands" : {
+		"!peen" : {
+		  "MessageContent" : "poon!",
+			"tts" : "true"
+		}
+		"!bot" : {
+			"MessageContent" : "This bot barely works bro.",
+			"tts" : "false"		
+		}
+		"!johnmadden" : {
+			"MessageContent" : "johnmadden johnmadden johnmadden",
+			"tts" : "true" 
+		}
+	}
+}

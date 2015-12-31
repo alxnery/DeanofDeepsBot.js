@@ -10,7 +10,7 @@ thebot.on("ready", function(){
 thebot.login(credentials.email, credentials.password);
 
 thebot.on("message", function(message){
-	if(message.content.charAt(0) === "!"){
+	if(message.content.startsWith("!") ){
 		var params = new Object();
 		params.tts = false;
 		var argument = message.content.split(" ");
@@ -34,7 +34,7 @@ thebot.on("message", function(message){
 				invalidparams(message, params);
 		}
 	}
-	else if(message.content.charAt(0) === "p"){
+	else if(message.content.startsWith("p") ){
 		var params = new Object();
 		params.tts = false;
 		var argument = message.content.split(" ");
