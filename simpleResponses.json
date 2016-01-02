@@ -1,15 +1,23 @@
 {
 		"items" : [{
 			"Event" : "!peen",
+			"Usage" : "<peen poon>",
 		  "MessageContent" : "poon!",
 			"tts" : "true"
 		},{
 			"Event" : "!bot",
+			"Usage" : "<alive?>",
 			"MessageContent" : "This bot barely works bro.",
 			"tts" : "false"	
 		},{
 			"Event": "!johnmadden",
+			"Usage" : "<johnmaddenjohnmadden...>",
 			"MessageContent" : "johnmadden johnmadden johnmadden",
+			"tts" : "true"
+		},{
+			"Event": "!kappa",
+			"Usage" : "<keepo>",
+			"MessageContent" : "kappa keepo",
 			"tts" : "true"
 		}]
 }

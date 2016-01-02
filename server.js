@@ -1,17 +1,59 @@
-var Discord = require('discord.js');
+
+try{
+	var Discord = require('discord.js');
+} catch(e){
+	console.log("npm install discord.js is required for basic function");
+	process.exit();
+}
+
 var fs = require('fs');
-var credentials = require('./auth.json');
-var simpleres = require('./simpleResponses.json');
+
+try{
+		var credentials = require('./auth.json');
+} catch(e){
+		console.log("auth.json in the form of {\"email\" : \"\", \"password\": \"\" is required}");
+		console.log("AUTO-GENERATING EXAMPLE NOW");
+		var authority = {
+		email : "foobar@example.com",
+		password: "foobaz",
+		};
+		fs.writeFile("./auth.json", JSON.stringify(authority,null,8), function(){ 
+						console.log("Default auth.json created, please fill in info");
+						process.exit();
+			});		
+}
+
+try{
+			var simpleres = require('./simpleResponses.json');
+} catch(e) {
+			var example = {
+			items : [{
+				Event : "!bot",
+				Usage : "<default simpleResponse>",
+			  MessageContent : "default simpleResponse",
+				tts : "false"
+				}]
+			};
+			fs.writeFile("./simpleResponses.json", JSON.stringify(example,null,8), function(){ 
+						console.log("Default simpleResponses.json created");
+			});
+}
+
 var thebot = new Discord.Client();
 //var commands = require('./commands.js');
 
-//add query methods for wolfram, google, yahoo
+//add querymethods for wolfram, google, yahoo
+//add !ttsreformat to split by characters<=85 for tts paragraphs
+
+if(credentials){
+	thebot.login(credentials.email, credentials.password);
+}
 
 thebot.on("ready", function(){
 	console.log("Serving Replies Now!");
 });
 
-thebot.login(credentials.email, credentials.password);
+
 
 thebot.on("message", function(message){
 
@@ -68,11 +110,13 @@ thebot.on("message", function(message){
 function hhelp(message){
 	var response = [],keys = Object.keys(simpleres.items),
 			len = keys.length,i=0,value;
-	response.push("Current functions are !hhelp");
+	response.push("Current functions are 	");
 	while(i<len){
 		value = simpleres.items[keys[i]];
-		response.push(", ");
+		response.push("\n");
 		response.push(value.Event);
+		response.push(" -> ");
+		response.push(value.Usage);
 		i+=1;
 	}
 	response.push(".");
