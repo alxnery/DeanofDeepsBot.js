@@ -1,0 +1,15 @@
+{
+		"items" : [{
+			"Event" : "!peen",
+		  "MessageContent" : "poon!",
+			"tts" : "true"
+		},{
+			"Event" : "!bot",
+			"MessageContent" : "This bot barely works bro.",
+			"tts" : "false"	
+		},{
+			"Event": "!johnmadden",
+			"MessageContent" : "johnmadden johnmadden johnmadden",
+			"tts" : "true"
+		}]
+}

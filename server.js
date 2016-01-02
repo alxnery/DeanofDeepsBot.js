@@ -1,7 +1,11 @@
 var Discord = require('discord.js');
 var fs = require('fs');
 var credentials = require('./auth.json');
+var simpleres = require('./simpleResponses.json');
 var thebot = new Discord.Client();
+//var commands = require('./commands.js');
+
+//add query methods for wolfram, google, yahoo
 
 thebot.on("ready", function(){
 	console.log("Serving Replies Now!");
@@ -10,70 +14,72 @@ thebot.on("ready", function(){
 thebot.login(credentials.email, credentials.password);
 
 thebot.on("message", function(message){
-	if(message.content.startsWith("!") ){
-		var params = new Object();
-		params.tts = false;
-		var argument = message.content.split(" ");
-		switch(argument[0].toLowerCase()){
-			case "!bot":
-				console.log(params.tts);
-				defaultResponse(message, params);
-				break;
+
+	if( (message.author.id != thebot.user.id) && 
+				message.content.startsWith("!") ){
+
+		//possible command
+		var args = message.content.split(" ")[0].toLowerCase();
+
+		//check for oneliner Response real fast
+		var keys = Object.keys(simpleres.items),
+			len = keys.length,i=0,
+			found = false, value;
+
+		while(i<len && found == false){
+			value = simpleres.items[keys[i]];
+			if(value.Event === args){
+				found = true;
+					if(value.tts === "true")
+						thebot.sendTTSMessage(message.channel, value.MessageContent); 
+					else
+						thebot.sendMessage(message.channel, value.MessageContent);
+			}
+			i+=1; 
+		} //if found end loop
+		//if not in the dynamic response, check system methods
+		//later to be swapped for an import of a module with function list and
+		//function pointers.
+		if(!found){
+			switch(args){
 			case "!hhelp":
-				hhelp(message, params);
-				break;
-			case "!johnmadden":
-				params.tts = true;
-				johnmadden(message, params);
-				break;
-			case "!peen":
-				params.tts = true;
-				peenpoon(message, params);
+				hhelp(message);
 				break;
 			default:
-				invalidparams(message, params);
+				invalidparams(message);
+			}
 		}
 	}
-	else if(message.content.startsWith("p") ){
-		var params = new Object();
-		params.tts = false;
-		var argument = message.content.split(" ");
-		 switch(argument[0].toLowerCase()){
+
+	//search for peen no matter what
+	else{
+		var argument = message.content.split(" "), rc = false;
+		for(var i = 0; i< argument.length && rc == false; i++){
+		 switch(argument[i].toLowerCase()){
 		 	case "peen":
-				peenpoon(message, params);
+				thebot.sendMessage(message.channel, "poon!");
+				rc = true
 				break;
 		 }
+		}
 	}
 });
 
-function defaultResponse(message, params){
-	sendTSMessage(message.channel, "This bot barely works bro",params);
-};
-
-function hhelp(message, params){
-	sendTSMessage(message.channel,
-		"Current functions are bot, hhelp, johnmadden, peen",params);
-};
-
-function invalidparams(message, params){
-	sendTSMessage(message.channel, message.content.slice(1).concat(" is an invalid parameter"), params);
-};
-
-function johnmadden(message, params){
-	sendTSMessage(message.channel,
-	 "johnmadden johnmadden johnmadden johnmadden",params);
-};
-
-function peenpoon(message, params){
-	sendTSMessage(message.channel, "poon!",params);
-};
-
-function sendTSMessage(destination, message,params){
-	console.log(params.tts);
-	if( params.tts == false){
-	thebot.sendMessage(destination, message);
+function hhelp(message){
+	var response = [],keys = Object.keys(simpleres.items),
+			len = keys.length,i=0,value;
+	response.push("Current functions are !hhelp");
+	while(i<len){
+		value = simpleres.items[keys[i]];
+		response.push(", ");
+		response.push(value.Event);
+		i+=1;
 	}
-	else{
-	thebot.sendMessage(destination, message, {"tts":"true"});
-	}
+	response.push(".");
+	var sb = response.join("");
+	thebot.sendMessage(message.channel, sb);
+};
+
+function invalidparams(message){
+	thebot.sendMessage(message.channel, message.content.slice(1).concat(" is an invalid parameter, try !hhelp."));
 };
