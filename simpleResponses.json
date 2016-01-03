@@ -19,5 +19,15 @@
 			"Usage" : "<keepo>",
 			"MessageContent" : "kappa keepo",
 			"tts" : "true"
+		},{
+			"Event": "!mangobae",
+			"Usage" : "<That's right>",
+			"MessageContent" : "https://soundcloud.com/mcsquareddj/mango-bae",
+			"tts" : "false"
+		},{
+			"Event": "!projectInfo",
+			"Usage" : "<Github for the project>",
+			"MessageContent" : "https://github.com/alxnery/DeanofDeepsBot.js",
+			"tts" : "false"
 		}]
 }
