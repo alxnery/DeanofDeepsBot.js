@@ -35,6 +35,8 @@ try{
 	});		
 }
 
+var giphy = require('giphy-api')();
+
 try{
 	var simpleres = require('./simpleResponses.json');
 } catch(e) {
@@ -112,6 +114,9 @@ thebot.on("message", function(message){
 				if(APIKEYSFOUND == true)
 					searchservice_youtube(message);
 				break;
+			case "!gif":
+				searchservice_giphy(message);
+				break;					
 			default:
 				invalidparams(message);
 			}
@@ -136,7 +141,7 @@ thebot.on("message", function(message){
 function hhelp(message){
 	var response = [],keys = Object.keys(simpleres.items),
 			len = keys.length,i=0,value;
-	response.push("Current system functions are !youtube, and !ttsformat\nOther functions are ");
+	response.push("Current system functions are !youtube, !gif, and !ttsformat\nOther functions are ");
 	while(i<len){ 
 		value = simpleres.items[keys[i]];
 		response.push("\n");
@@ -154,7 +159,7 @@ function searchservice_youtube(message){
 	var yt = new youtube_node();
 	yt.setKey(apicredentials.youtubeAPIKEY);
 	var str = message.content;
-	str = str.replace("!youtube","");
+	str = str.replace("!youtube ","");
 	console.log(str);
 	yt.search(str, 1, function(err, result){
 		if(!result || !result.items || result.items.length<1){
@@ -166,6 +171,29 @@ function searchservice_youtube(message){
 				thebot.sendMessage(message.channel, "http://www.youtube.com/channel/" + result.items[0].id.channelId);
 			else
 			thebot.sendMessage(message.channel, "http://www.youtube.com/watch?v=" + result.items[0].id.videoId);
+		}
+	});
+}
+
+function searchservice_giphy(message){
+	var giphy_parameters = {
+		q:"anthony fantano",
+		rating : 'r',
+		limit : 20
+	};
+	
+	var str = message.content;
+	str = str.replace("!gif ", "");
+	giphy_parameters.q = str;
+	giphy.search(giphy_parameters, function(err, res){
+		if(err)
+		console.log(err);
+		else if(res.data[0] == undefined)
+		thebot.sendMessage(message.channel, "No results found");
+		else{
+		var randnum = Math.floor(Math.random() * (res.data.length));
+		console.log(randnum + res.data[randnum].url + res.data[randnum].rating);
+		thebot.sendMessage(message.channel, res.data[randnum].url);
 		}
 	});
 }

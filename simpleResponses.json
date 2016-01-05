@@ -25,7 +25,7 @@
 			"MessageContent" : "https://soundcloud.com/mcsquareddj/mango-bae",
 			"tts" : "false"
 		},{
-			"Event": "!projectInfo",
+			"Event": "!projectinfo",
 			"Usage" : "<Github for the project>",
 			"MessageContent" : "https://github.com/alxnery/DeanofDeepsBot.js",
 			"tts" : "false"
