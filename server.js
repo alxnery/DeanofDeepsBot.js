@@ -8,16 +8,19 @@ try{
 
 var fs = require('fs');
 
-var APIKEYSFOUND = false;
+var APIKEYSFOUND = {
+		youtube : false,
+		giphy : false
+	}
 
 try{
 	var apicredentials = require('./apiauth.json');
 	var youtube_node = require('youtube-node');
-	APIKEYSFOUND = true;
+	APIKEYSFOUND.youtube = true;
 } catch(e){
 	console.log("To use certain API features accounts and API keys must be found.");
 	console.log("format is {\"serviceAPIKEY\" : \"key\"} where service is the service name.");
-	APIKEYSFOUND = false;
+	APIKEYSFOUND.youtube = false;
 }
 
 try{
@@ -35,7 +38,13 @@ try{
 	});		
 }
 
-var giphy = require('giphy-api')();
+try{
+	var giphy = require('giphy-api')();
+	APIKEYSFOUND.giphy = true;
+} catch(e){
+	console.log("giphy api not found");
+	APIKEYSFOUND.giphy = false;
+}
 
 try{
 	var simpleres = require('./simpleResponses.json');
@@ -79,11 +88,54 @@ thebot.on("message", function(message){
 
 	if( (message.author.id != thebot.user.id) && 
 			message.content.startsWith("!") ){
-
+		
 		//possible command
 		var args = message.content.split(" ")[0].toLowerCase();
 
-		//check for oneliner Response real fast
+		switch(args){
+			case "!hhelp":
+				hhelp(message);
+				break;
+			case "!ttsformat":
+				ttsformat(message);
+				break;
+			case "!youtube":
+				if(APIKEYSFOUND.youtube == true)
+					searchservice_youtube(message);
+				break;
+			case "!gif":
+				if(APIKEYSFOUND.giphy == true)
+				searchservice_giphy(message);
+				break;
+			case "!sadboys":
+				aestheticConvert(message);
+				break;
+			case "!define":
+				newCommand(message);
+				break;
+			default:
+				checkResponses(message);
+			}
+		}
+});
+
+thebot.on("message", function(message){
+		var argument = message.content.split(" "), rc = false;
+		for(var i = 0; i< argument.length && rc == false; i++){
+		 switch(argument[i].toLowerCase()){
+		 	case "peen":
+				thebot.sendMessage(message.channel, "poon!");
+				rc = true
+				break;
+		 }
+		}
+});
+
+function checkResponses(message){
+
+		//possible command
+		var args = message.content.split(" ")[0];
+	//check for oneliner Response real fast
 		var keys = Object.keys(simpleres.items),
 			len = keys.length,i=0,
 			found = false, value;
@@ -99,44 +151,72 @@ thebot.on("message", function(message){
 			}
 			i+=1; 
 		} //if found end loop
-		//if not in the dynamic response, check system methods
-		//later to be swapped for an import of a module with function list and
-		//function pointers.
-		if(!found){
-			switch(args){
-			case "!hhelp":
-				hhelp(message);
-				break;
-			case "!ttsformat":
-				ttsformat(message);
-				break;
-			case "!youtube":
-				if(APIKEYSFOUND == true)
-					searchservice_youtube(message);
-				break;
-			case "!gif":
-				searchservice_giphy(message);
-				break;					
-			default:
-				invalidparams(message);
+}
+
+function newCommand(message){
+	//pick up the contents	
+	var str = message.content;
+	console.log(str);
+
+	//split and drop the call
+	str = str.split(" ");
+	str.shift();
+	str = str.join(" ");
+
+	//split by token
+	str = str.split("::");
+
+		//if the string is acceptable
+		if(str.length >=2 && str.length <= 4){
+
+			//insert the flag to the beginning
+			var EventVal = insertAtIndex(str[0], 0, "!");
+
+			//set the fallthrough objects
+			var ttsVal = false;
+			var UsageVal = "<" + EventVal + ">";
+
+			//set the messageContent
+			var MessageContentVal = str[1];
+
+			//if the command is strictly event::MessageContent::usage
+			if(str.length===3){
+				UsageVal = "<" + str[2] + ">";
 			}
-		}
+			//if the command is event::MessageContent::Usage::tts
+			else if(str.length===4){
+				UsageVal = "<" + str[2] + ">";
+				if(str[3]==="true" || str[3]==="yes"){
+					ttsVal = true;
+				}
+			}
+			
+			simpleres.items.push({
+				Event : EventVal,
+				Usage : UsageVal,
+				MessageContent : MessageContentVal,
+				tts : ttsVal,
+				author : {
+					id : message.author.id,
+					username : message.author.username	
+					}
+			});
 
-	}
+		fs.writeFile("./simpleResponses.json", JSON.stringify(simpleres,null,8), function(){
+		thebot.sendMessage(message.channel, "Command created");
+	});
 
-	//search for peen no matter what
+		simpleres = require('./simpleResponses.json');
+
+		}//end :: parse
+
 	else{
-		var argument = message.content.split(" "), rc = false;
-		for(var i = 0; i< argument.length && rc == false; i++){
-		 switch(argument[i].toLowerCase()){
-		 	case "peen":
-				thebot.sendMessage(message.channel, "poon!");
-				rc = true
-				break;
-		 }
+		thebot.sendMessage(message.channel,
+		"Proper usage of define is !define Event::EventMessage::Usage::tts");
 		}
-	}
-});
+
+}
+
 
 function hhelp(message){
 	var response = [],keys = Object.keys(simpleres.items),
@@ -144,8 +224,9 @@ function hhelp(message){
 	response.push("Current system functions are !youtube, !gif, and !ttsformat\nOther functions are ");
 	while(i<len){ 
 		value = simpleres.items[keys[i]];
-		response.push("\n");
+		response.push("\n**");
 		response.push(value.Event);
+		response.push("**");
 		response.push(" -> ");
 		response.push(value.Usage);
 		i+=1;
@@ -206,7 +287,7 @@ function ttsformat(message){
 
 	function chopMessage(){
 		setTimeout(function(){
-		var removed = args.splice(0, 20);
+		var removed = args.splice(0, 25);
 		if(removed.length == 0)
 			return
 			else{
@@ -218,7 +299,27 @@ function ttsformat(message){
 
 	chopMessage();
 }
- 
+
+function aestheticConvert(message){
+	var inString = message.content;
+	inString = inString.split(" ");
+	inString.shift();
+	inString = inString.join(" ");
+	var outString = "";
+	for(i=0; i<inString.length; i++){
+		if(inString.charCodeAt(i) >= 33 && inString.charCodeAt(i) <= 270)
+			outString += String.fromCharCode(inString.charCodeAt(i)+65248);
+		else{
+			outString += inString.charAt(i);
+		}
+	}
+	thebot.sendMessage(message.channel, outString);
+};
+
 function invalidparams(message){
 	thebot.sendMessage(message.channel, message.content.slice(1).concat(" is an invalid parameter, try !hhelp."));
+};
+
+function insertAtIndex(str, index, val){
+	return str.substr(0, index) + val + str.substr(index);
 };

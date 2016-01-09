@@ -1,33 +1,62 @@
 {
-		"items" : [{
-			"Event" : "!peen",
-			"Usage" : "<peen poon>",
-		  "MessageContent" : "poon!",
-			"tts" : "true"
-		},{
-			"Event" : "!bot",
-			"Usage" : "<alive?>",
-			"MessageContent" : "This bot barely works bro.",
-			"tts" : "false"	
-		},{
-			"Event": "!johnmadden",
-			"Usage" : "<johnmaddenjohnmadden...>",
-			"MessageContent" : "johnmadden johnmadden johnmadden",
-			"tts" : "true"
-		},{
-			"Event": "!kappa",
-			"Usage" : "<keepo>",
-			"MessageContent" : "kappa keepo",
-			"tts" : "true"
-		},{
-			"Event": "!mangobae",
-			"Usage" : "<That's right>",
-			"MessageContent" : "https://soundcloud.com/mcsquareddj/mango-bae",
-			"tts" : "false"
-		},{
-			"Event": "!projectinfo",
-			"Usage" : "<Github for the project>",
-			"MessageContent" : "https://github.com/alxnery/DeanofDeepsBot.js",
-			"tts" : "false"
-		}]
+        "items": [
+                {
+                        "Event": "!peen",
+                        "Usage": "<peen poon>",
+                        "MessageContent": "poon!",
+                        "tts": "true"
+                },
+                {
+                        "Event": "!bot",
+                        "Usage": "<alive?>",
+                        "MessageContent": "This bot barely works bro.",
+                        "tts": "false"
+                },
+                {
+                        "Event": "!johnmadden",
+                        "Usage": "<johnmaddenjohnmadden...>",
+                        "MessageContent": "johnmadden johnmadden johnmadden",
+                        "tts": "true"
+                },
+                {
+                        "Event": "!kappa",
+                        "Usage": "<keepo>",
+                        "MessageContent": "kappa keepo",
+                        "tts": "true"
+                },
+                {
+                        "Event": "!mangobae",
+                        "Usage": "<That's right>",
+                        "MessageContent": "https://soundcloud.com/mcsquareddj/mango-bae",
+                        "tts": "false"
+                },
+                {
+                        "Event": "!projectinfo",
+                        "Usage": "<Github for the project>",
+                        "MessageContent": "https://github.com/alxnery/DeanofDeepsBot.js",
+                        "tts": "false"
+                },
+                {
+                        "Event": "!mmkc2",
+                        "Usage": "<I hope you agree with me >",
+                        "MessageContent": "mew mew kissy cutie was neither kissy nor cute 0/10 trash",
+                        "tts": false
+                },
+                {
+                        "Event": "!deanstrim",
+                        "Usage": "<deanofdeeps stream>",
+                        "MessageContent": "http://twitch.tv/todoslosdeeps",
+                        "tts": false
+                },
+                {
+                        "Event": "!temmie",
+                        "Usage": "<tem flakes>",
+                        "MessageContent": "http://youtu.be/qb2df5tI00E",
+                        "tts": false,
+                        "author": {
+                                "id": "77099048443584512",
+                                "username": "DeanofDeeps"
+                        }
+                }
+        ]
 }
