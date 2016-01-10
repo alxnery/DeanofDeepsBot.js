@@ -4,43 +4,43 @@
                         "Event": "!peen",
                         "Usage": "<peen poon>",
                         "MessageContent": "poon!",
-                        "tts": "true"
+                        "tts": true
                 },
                 {
                         "Event": "!bot",
                         "Usage": "<alive?>",
                         "MessageContent": "This bot barely works bro.",
-                        "tts": "false"
+                        "tts": false
                 },
                 {
                         "Event": "!johnmadden",
                         "Usage": "<johnmaddenjohnmadden...>",
                         "MessageContent": "johnmadden johnmadden johnmadden",
-                        "tts": "true"
+                        "tts": true
                 },
                 {
                         "Event": "!kappa",
                         "Usage": "<keepo>",
                         "MessageContent": "kappa keepo",
-                        "tts": "true"
+                        "tts": true
                 },
                 {
                         "Event": "!mangobae",
                         "Usage": "<That's right>",
                         "MessageContent": "https://soundcloud.com/mcsquareddj/mango-bae",
-                        "tts": "false"
+                        "tts": false
                 },
                 {
                         "Event": "!projectinfo",
                         "Usage": "<Github for the project>",
                         "MessageContent": "https://github.com/alxnery/DeanofDeepsBot.js",
-                        "tts": "false"
+                        "tts": false
                 },
                 {
                         "Event": "!mmkc2",
                         "Usage": "<I hope you agree with me >",
-                        "MessageContent": "mew mew kissy cutie was neither kissy nor cute 0/10 trash",
-                        "tts": false
+                        "MessageContent": "mew mew kissy cutie 2 was neither kissy nor cute 0/10 trash",
+                        "tts": true
                 },
                 {
                         "Event": "!deanstrim",

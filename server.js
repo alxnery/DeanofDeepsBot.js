@@ -54,7 +54,7 @@ try{
 			Event : "!bot",
 			Usage : "<default simpleResponse>",
 			MessageContent : "default simpleResponse",
-			tts : "false"
+			tts : false
 			}]
 		};
 	fs.writeFile("./simpleResponses.json", JSON.stringify(example,null,8), function(){ 
@@ -144,7 +144,7 @@ function checkResponses(message){
 			value = simpleres.items[keys[i]];
 			if(value.Event === args){
 				found = true;
-				if(value.tts === "true")
+				if(value.tts == true)
 					thebot.sendTTSMessage(message.channel, value.MessageContent); 
 				else
 					thebot.sendMessage(message.channel, value.MessageContent);
