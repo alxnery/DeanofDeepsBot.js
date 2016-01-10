@@ -1,9 +1,9 @@
 {
         "items": [
                 {
-                        "Event": "!peen",
-                        "Usage": "<peen poon>",
-                        "MessageContent": "poon!",
+                        "Event": "!peenpoon",
+                        "Usage": "<peenpoon>",
+                        "MessageContent": "peenpoon!",
                         "tts": true
                 },
                 {
@@ -48,6 +48,13 @@
                         "MessageContent": "http://twitch.tv/todoslosdeeps",
                         "tts": false
                 },
+                {
+                        "Event": "!Chewstrim",
+                        "Usage": "<Chudicial stream>",
+                        "MessageContent": "http://twitch.tv/waguan22",
+                        "tts": false
+                },
+
                 {
                         "Event": "!temmie",
                         "Usage": "<tem flakes>",
