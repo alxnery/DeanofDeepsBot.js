@@ -284,7 +284,7 @@ function ttsformat(message){
 	var args = message.content.split(" ");
 
 	args.shift();
-
+	
 	function chopMessage(){
 		setTimeout(function(){
 		var removed = args.splice(0, 25);
@@ -296,8 +296,12 @@ function ttsformat(message){
 			}
 		}, 1000);	
 	}
-
+	if(args.length != 0){
 	chopMessage();
+	}
+	else{
+	thebot.sendMessage(message.channel, "This command formats tts to fit all those dank memes.");
+}
 }
 
 function aestheticConvert(message){
