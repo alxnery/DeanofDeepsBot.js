@@ -160,7 +160,7 @@ thebot.on("message", function(message){
 
 function playAudioFromUserID(channelID, userID, path){
 	var server = iobot.serverFromChannel(channelID);
-	var voice_channel = findVoiceChannel(server, channelID, userID);
+	var voice_channel = findVoiceChannel(server, userID);
 	ifReadyToJoinVoice(server, voice_channel, path, playAudioClip);
 }
 
@@ -198,7 +198,7 @@ function happyfeast(message, channelID, userID){
 
 }
 
-function findVoiceChannel(server, textchannelID, userID){
+function findVoiceChannel(server, userID){
 	console.log(JSON.stringify(server,null,4) + " " + userID);
 	console.log("about to loop i");
 	for(i in iobot.servers[server].channels){
