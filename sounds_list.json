@@ -1,0 +1,52 @@
+{
+	"Hearthstone_HappyFeast" : {
+		"Uther" : {
+			"aliases" : ["pally", "paladin"],
+			"path" : "./sounds/Paladin_Pally.mp3"
+		},
+		"Mage" : {
+			"aliases" : ["mage", "jaina"],
+			"path" : "./sounds/Mage.mp3"
+		},
+		"Guldan" : {
+			"aliases" : ["warlock", "lock", "guldan", "Guldan"],
+			"path" : "./sounds/Warlock_Lock.mp3"
+		},
+		"Rexxar" : {
+			"aliases" : ["rex", "rexxar", "hunter","h"],
+			"path" : "./sounds/Hunter.mp3"
+		},
+		"Warrior" : {
+			"aliases" : ["warrior", "war","w"],
+			"path" : "./sounds/Warrior_Warr.mp3"
+		},
+		"Thrall" : {
+			"aliases" : ["shaman", "shammy", "sham", "s","thrall"],
+			"path" : "./sounds/Shaman_Sham.mp3"
+		},
+		"Priest" : {
+			"aliases" : ["priest", "p"],
+			"path" : "./sounds/Priest.mp3"
+		},
+		"Rogue" : {
+			"aliases" : ["rogue", "rog", "r"],
+			"path" : "./sounds/Rogue.mp3"
+		},
+		"Druid" : {
+			"aliases" : ["druid","d"],
+			"path" : "./sounds/Druid.mp3"
+		},
+		"Ragnaros" : {
+			"aliases" : ["rag", "ra"],
+			"path" : "./sounds/Rag_Ragnaros.mp3"	
+		},
+		"Medivh" : {
+			"aliases" : ["medivh", "med"],
+			"path" : "./sounds/Medivh.mp3"
+		},
+		"Jaraxxus" : {
+			"aliases" : ["jaraxxus","jar","YOUFACE"],
+			"path" : "./sounds/Jaraxxus.mp3"
+		}
+	}
+}

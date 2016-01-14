@@ -2,6 +2,12 @@
 auth.json
 apiauth.json
 
+#sounds
+./sounds
+
+#temp
+tenc
+
 # Logs
 logs
 *.log

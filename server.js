@@ -6,12 +6,24 @@ try{
 	process.exit();
 }
 
+//check for discord.io
+var IOEnable = true;
+
+try{
+	var IODiscord = require('discord.io');
+} catch(e){
+	IOEnable = false;
+	console.log("Install discord.io required for voice function");
+}
+
 var fs = require('fs');
 
 var APIKEYSFOUND = {
 		youtube : false,
 		giphy : false
 	}
+
+var sound_list = require('./sounds_list.json');
 
 try{
 	var apicredentials = require('./apiauth.json');
@@ -62,27 +74,41 @@ try{
 	});
 }
 
-/*var yt = function YoutubeLogin(){
-	this.youtube = new youtube_node();
-	this.youtube.setKey(apicredentials.youtubeAPIKEY);
-	return this.youtube;		
-}*/
-
 var thebot = new Discord.Client();
+
 //var commands = require('./commands.js');
 
 //add querymethods for wolfram, google, yahoo
-//add !ttsreformat to split by characters<=85 for tts paragraphs
 
 if(credentials){
 	thebot.login(credentials.email, credentials.password);
+	if(IOEnable == true){
+		var iobot = new IODiscord({
+		autorun: true,
+		email : credentials.email,
+		password : credentials.password
+		});
+	}
 }
 
 thebot.on("ready", function(){
-	console.log("Serving Replies Now!");
+	console.log("MessageBot Serving Replies Now!");
 });
 
+iobot.on("ready", function(){
+	console.log("IOBot Waiting for audio response");
+});
 
+iobot.on("message", function(user,userID,channelID,message,rawEvent){
+	if(message.charAt(0) === "!")
+		if(message.startsWith("!happyfeast")){
+			console.log(message);
+			happyfeast(message,channelID,userID);
+		}
+		else if(message.startsWith("!helicopter")){
+			helicopter(message, channelID, userID);
+		}
+});
 
 thebot.on("message", function(message){
 
@@ -130,6 +156,83 @@ thebot.on("message", function(message){
 		 }
 		}
 });
+
+function helicopter(message, channelID, userID){
+	var voice_channel = findVoiceChannel(channelID, userID);
+	playAudioClip(voice_channel, "./sounds/helicopter.mp3");
+}
+
+function happyfeast(message, channelID, userID){
+	var keys = Object.keys(sound_list.Hearthstone_HappyFeast),
+	i=0, found = false, sound_path, cur, names;
+
+	var requestMessage = message;
+	requestMessage = requestMessage.split(" ");
+	requestMessage.shift();
+
+	if(requestMessage.length > 0){
+
+		for(i=0; i<keys.length && (!found); i+=1){
+
+			cur = sound_list.Hearthstone_HappyFeast[keys[i]];
+			names = cur.aliases;
+
+			for(j=0; j<names.length && (!found); j+=1){
+				if(requestMessage[0].toLowerCase() === names[j]){
+					sound_path = cur.path;
+					found = true;
+				}
+
+			}
+		}
+	}
+
+	if(!found){
+		var randnum = Math.floor(Math.random() * (keys.length));
+		sound_path = sound_list.Hearthstone_HappyFeast[keys[randnum]].path;
+	}
+
+	var voice_channel = findVoiceChannel(channelID, userID);
+	playAudioClip(voice_channel, sound_path);
+	//call sound_path;
+
+}
+
+function findVoiceChannel(textchannelID, userID){
+	var server = iobot.serverFromChannel(textchannelID);
+	console.log(JSON.stringify(server,null,4) + " " + userID);
+	console.log("about to loop i");
+	for(i in iobot.servers[server].channels){
+		if(iobot.servers[server].channels[i].type === "voice")
+			for(j in iobot.servers[server].channels[i].members){
+				console.log("member found");
+				if(iobot.servers[server].channels[i].members[j].user_id === userID){
+					console.log(iobot.servers[server].channels[i].members[j].channel_id);
+					return iobot.servers[server].channels[i].members[j].channel_id;
+				}
+			}
+	}
+}
+
+function playAudioClip(voice_channel, path){
+	if(IOEnable){
+		iobot.joinVoiceChannel(voice_channel, function(){
+			iobot.getAudioContext({ channel : voice_channel, stereo:true}, function(stream){
+				stream.playAudioFile(path); //start playing
+				stream.once('fileEnd', function(){
+
+				setTimeout(function(){
+				iobot.leaveVoiceChannel(voice_channel);
+				},1000);
+
+				});
+			});
+		});
+	}
+	else{
+		console.log("iobot is not enabled, audio call failed request for " + path);
+	}
+}
 
 function checkResponses(message){
 
@@ -301,8 +404,8 @@ function ttsformat(message){
 	}
 	else{
 	thebot.sendMessage(message.channel, "This command formats tts to fit all those dank memes.");
-}
-}
+	}
+};
 
 function aestheticConvert(message){
 	var inString = message.content;
