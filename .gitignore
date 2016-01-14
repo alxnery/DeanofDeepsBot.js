@@ -3,7 +3,7 @@ auth.json
 apiauth.json
 
 #sounds
-./sounds
+/sounds/*.mp3
 
 #temp
 tenc

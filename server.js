@@ -97,6 +97,7 @@ thebot.on("ready", function(){
 
 iobot.on("ready", function(){
 	console.log("IOBot Waiting for audio response");
+	console.log(JSON.stringify(iobot.id, null, 4));
 });
 
 iobot.on("message", function(user,userID,channelID,message,rawEvent){
@@ -106,7 +107,7 @@ iobot.on("message", function(user,userID,channelID,message,rawEvent){
 			happyfeast(message,channelID,userID);
 		}
 		else if(message.startsWith("!helicopter")){
-			helicopter(message, channelID, userID);
+			playAudioFromUserID(channelID, userID, "./sounds/helicopter.mp3");
 		}
 });
 
@@ -157,9 +158,10 @@ thebot.on("message", function(message){
 		}
 });
 
-function helicopter(message, channelID, userID){
-	var voice_channel = findVoiceChannel(channelID, userID);
-	playAudioClip(voice_channel, "./sounds/helicopter.mp3");
+function playAudioFromUserID(channelID, userID, path){
+	var server = iobot.serverFromChannel(channelID);
+	var voice_channel = findVoiceChannel(server, channelID, userID);
+	ifReadyToJoinVoice(server, voice_channel, path, playAudioClip);
 }
 
 function happyfeast(message, channelID, userID){
@@ -191,21 +193,18 @@ function happyfeast(message, channelID, userID){
 		var randnum = Math.floor(Math.random() * (keys.length));
 		sound_path = sound_list.Hearthstone_HappyFeast[keys[randnum]].path;
 	}
-
-	var voice_channel = findVoiceChannel(channelID, userID);
-	playAudioClip(voice_channel, sound_path);
-	//call sound_path;
+	console.log(sound_path);
+	playAudioFromUserID(channelID, userID, sound_path);
 
 }
 
-function findVoiceChannel(textchannelID, userID){
-	var server = iobot.serverFromChannel(textchannelID);
+function findVoiceChannel(server, textchannelID, userID){
 	console.log(JSON.stringify(server,null,4) + " " + userID);
 	console.log("about to loop i");
 	for(i in iobot.servers[server].channels){
 		if(iobot.servers[server].channels[i].type === "voice")
 			for(j in iobot.servers[server].channels[i].members){
-				console.log("member found");
+				//console.log("member found");
 				if(iobot.servers[server].channels[i].members[j].user_id === userID){
 					console.log(iobot.servers[server].channels[i].members[j].channel_id);
 					return iobot.servers[server].channels[i].members[j].channel_id;
@@ -215,22 +214,35 @@ function findVoiceChannel(textchannelID, userID){
 }
 
 function playAudioClip(voice_channel, path){
-	if(IOEnable){
-		iobot.joinVoiceChannel(voice_channel, function(){
-			iobot.getAudioContext({ channel : voice_channel, stereo:true}, function(stream){
-				stream.playAudioFile(path); //start playing
-				stream.once('fileEnd', function(){
+	iobot.joinVoiceChannel(voice_channel, function(){
+		iobot.getAudioContext({ channel : voice_channel, stereo:true}, function(stream){
+			stream.playAudioFile(path); //start playing
+			stream.once('fileEnd', function(){
 
-				setTimeout(function(){
-				iobot.leaveVoiceChannel(voice_channel);
-				},1000);
+			setTimeout(function(){
+			iobot.leaveVoiceChannel(voice_channel);
+			},1000);
 
-				});
 			});
 		});
+	});
+}
+
+function ifReadyToJoinVoice(server, voice_channel, path, callback){
+	for(i in iobot.servers[server].channels){
+		for(j in iobot.servers[server].channels[i].members){
+			if(iobot.servers[server].channels[i].members[j].user_id === iobot.id){
+				//if we find OURSELVES already in the channel return false
+				console.log("found self in server " + server + " channel " + voice_channel + "playback failed for " + path);
+				return false;
+			}
+		}
 	}
-	else{
-		console.log("iobot is not enabled, audio call failed request for " + path);
+
+	//if not, then we're ready.
+	if(typeof callback === "function"){
+		console.log(path);
+		callback(voice_channel, path);
 	}
 }
 
