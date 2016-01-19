@@ -41,7 +41,7 @@ try{
 	}
 	fs.writeFile("./sounds_list.json", JSON.stringify(example_sound,null,8), function(){ 
 		console.log("It is clunky for now but allows a fun lookup scheme, don't worry, I just created a template");
-	}
+	});
 
 }
 
@@ -136,7 +136,7 @@ iobot.on("message", function(user,userID,channelID,message,rawEvent){
 				playAudioFromUserID(channelID, userID, "./sounds/helicopter.mp3");
 				break;
 			case "!sound":
-				findSoundAndPlay(message,channelID,userID);
+				processSoundRequest(message,channelID,userID);
 				break;
 		}
 
@@ -200,6 +200,71 @@ function playAudioFromUserID(channelID, userID, path){
 	catch(e){
 		console.log("channel not found");
 	}
+}
+
+function processSoundRequest(message, channelID, userID){
+
+	var args = message.split(" ");
+
+	if(args.length > 1 && args[1].startsWith("--")){
+		args = args[1];
+		args = args.slice(2);
+		console.log(args);
+		switch(args){
+			case "list":
+				listSounds(channelID);
+				break;
+			case "help":
+				var msg = "!sound will default to a random sound from a random group, or a specific group"
+				+ "additional specificities can be acheived by using !sound group clip, " +
+				"where group is the group name, and clip is the alias for the clip " +
+				"i.e !sound happyfeast rag which will query happyfeast for a rag clip\n" +
+				"also try !sound --list for a list"; 
+				thebot.sendMessage(channelID, msg);
+				break;
+			default :
+				thebot.sendMessage(channelID, "try --list or --help");
+			}
+		}
+	else{
+		findSoundAndPlay(message, channelID, userID);
+	}
+}
+
+function listSounds(channelID){
+	var base_group = sound_list,
+	cur, names,
+	groupkeys, name;
+
+	var outputString = "\n";
+
+	var i, j, k;
+	//loop through groups
+	groupkeys = Object.keys(base_group);
+	for(i=0; i<groupkeys.length; i+=1){
+		
+		//add groupname -
+		outputString += "**" + groupkeys[i] + "**" + "--\n";
+		//get keys for clip list
+		namekeys = Object.keys(base_group[groupkeys[i]]);
+		//cur is the reference point of the group were in 
+		cur = base_group[groupkeys[i]];
+
+		//loop through clip list
+		for(k=0; k<namekeys.length; k+= 1){
+			//add clip name
+			outputString += namekeys[k] + "- ";
+			names = cur[namekeys[k]].aliases;
+			//loop through aliases
+			for(j=0; j<names.length; j+=1){
+				//add the alias + " "
+				outputString += names[j] + " ";
+			}
+			//add new line after the aliases
+			outputString += "\n";
+		}
+	}
+	thebot.sendMessage(channelID, outputString);
 }
 
 //attempt to find a !sound request using the sounds_list.json
