@@ -23,8 +23,28 @@ var APIKEYSFOUND = {
 		giphy : false
 	}
 
-var sound_list = require('./sounds_list.json');
-//console.log(JSON.stringify(sound_list, null, 4));
+try{
+	var sound_list = require('./sounds_list.json');
+	//console.log(JSON.stringify(sound_list, null, 4));
+} catch(e){
+	console.log("To add and play mp3's, install ffmpeg or avconv "+
+		"then drop files in the sounds folder, and edit the sounds_list.json file");
+	console.log("this format is group.sound.(aliases && path) " + 
+		"where aliases are an array of names you would like to use for the clip in question");
+	var example_sound = {
+		group1 : {
+			sound1 : {
+				aliases : ["sound1", "s1"],
+				path : "sound1.mp3"
+			}
+		}
+	}
+	fs.writeFile("./sounds_list.json", JSON.stringify(example_sound,null,8), function(){ 
+		console.log("It is clunky for now but allows a fun lookup scheme, don't worry, I just created a template");
+	}
+
+}
+
 var sound_root = "./sounds/";
 
 try{
