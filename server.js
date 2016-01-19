@@ -24,6 +24,8 @@ var APIKEYSFOUND = {
 	}
 
 var sound_list = require('./sounds_list.json');
+//console.log(JSON.stringify(sound_list, null, 4));
+var sound_root = "./sounds/";
 
 try{
 	var apicredentials = require('./apiauth.json');
@@ -101,14 +103,25 @@ iobot.on("ready", function(){
 });
 
 iobot.on("message", function(user,userID,channelID,message,rawEvent){
-	if(message.charAt(0) === "!")
-		if(message.startsWith("!happyfeast")){
-			console.log(message);
-			happyfeast(message,channelID,userID);
+
+	if( (userID != iobot.id) && message.charAt(0) === "!"){
+
+		var args = message.split(" ")[0];
+
+		switch(args){
+			case "!happyfeast":
+				happyfeast(message,channelID,userID);
+				break;
+			case "!helicopter":
+				playAudioFromUserID(channelID, userID, "./sounds/helicopter.mp3");
+				break;
+			case "!sound":
+				findSoundAndPlay(message,channelID,userID);
+				break;
 		}
-		else if(message.startsWith("!helicopter")){
-			playAudioFromUserID(channelID, userID, "./sounds/helicopter.mp3");
-		}
+
+	}
+
 });
 
 thebot.on("message", function(message){
@@ -160,13 +173,106 @@ thebot.on("message", function(message){
 
 function playAudioFromUserID(channelID, userID, path){
 	var server = iobot.serverFromChannel(channelID);
+	try{
 	var voice_channel = findVoiceChannel(server, userID);
 	ifReadyToJoinVoice(server, voice_channel, path, playAudioClip);
+	}
+	catch(e){
+		console.log("channel not found");
+	}
+}
+
+//attempt to find a !sound request using the sounds_list.json
+//each element is part of group.clip.(path || aliases);
+//Hard loops used for speed, stop when things are found, no foreach
+function findSoundAndPlay(message, channelID, userID){
+	var group_found = false,
+	found = false,
+	sound_found = false,
+	sound_path = sound_root, 
+	base_group = sound_list, 
+	sounds_group, sounds_final,
+	cur, names;
+
+	var requestMessage = message;
+	requestMessage = requestMessage.split(" ");
+	requestMessage.shift();
+
+	//request a group folder
+	if(requestMessage.length > 0){
+		//if the request is invalid
+		if(isKeyPresent(base_group, requestMessage[0])){
+			//requested key is present, go go
+			group_found = true;
+			sounds_group = base_group[requestMessage[0]];
+
+			//check if the second param is here
+			//if not we skip down and pick at random
+			if(requestMessage.length > 1){
+			//console.log("Trying " + requestMessage[1]);
+			var keys = Object.keys(sounds_group);
+			var i, j;
+			//loop through keys
+			for(i=0; i<keys.length && (!found); i+=1){
+				cur = sounds_group[keys[i]];
+				names = cur.aliases;
+				//loop through aliases
+				for(j=0; j<names.length && (!found); j+=1){
+					if(requestMessage[1] === names[j]){
+						sound_path += cur.path;
+						found = true;
+						sound_found = true;
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	//If the lookup failed at the group level, or sound level, we catch and remediate here
+
+	//if we failed to match the group get one at random
+	//this will be fed to establishing the sound clip
+	if(group_found == false){
+			//pick a random group and random folder
+			//get a random group from sounds
+			sounds_group = base_group[pickRandomKey(base_group)];
+			group_found = true;
+	}
+
+	//if we failed to match the sound we get one here at random...
+	//sounds_group is guaranteed to be established by now either at random or by choice.
+	if(sound_found == false){
+			//get a random sounds from group
+			sounds_final = sounds_group[pickRandomKey(sounds_group)];
+			//append to the static sound_root
+			sound_path +=  sounds_final.path;
+			sound_found = true;
+	}
+
+	playAudioFromUserID(channelID, userID, sound_path);
+}
+
+function isKeyPresent(obj, str){
+	var keys = Object.keys(obj), i;
+	for(i=0; i<keys.length; i+=1){
+		if(keys[i] === str)
+			return true;
+	}
+
+	return false;
+}
+
+function pickRandomKey(obj){
+	var keys = Object.keys(obj), i;
+	var randnum = Math.floor(Math.random() * keys.length);
+	return keys[randnum];	
 }
 
 function happyfeast(message, channelID, userID){
-	var keys = Object.keys(sound_list.Hearthstone_HappyFeast),
-	i=0, found = false, sound_path, cur, names;
+	var keys = Object.keys(sound_list.happyfeast),
+	i=0, found = false, sound_path = sound_root, cur, names;
 
 	var requestMessage = message;
 	requestMessage = requestMessage.split(" ");
@@ -176,12 +282,12 @@ function happyfeast(message, channelID, userID){
 
 		for(i=0; i<keys.length && (!found); i+=1){
 
-			cur = sound_list.Hearthstone_HappyFeast[keys[i]];
+			cur = sound_list.happyfeast[keys[i]];
 			names = cur.aliases;
 
 			for(j=0; j<names.length && (!found); j+=1){
 				if(requestMessage[0].toLowerCase() === names[j]){
-					sound_path = cur.path;
+					sound_path += cur.path;
 					found = true;
 				}
 
@@ -191,7 +297,7 @@ function happyfeast(message, channelID, userID){
 
 	if(!found){
 		var randnum = Math.floor(Math.random() * (keys.length));
-		sound_path = sound_list.Hearthstone_HappyFeast[keys[randnum]].path;
+		sound_path += sound_list.happyfeast[keys[randnum]].path;
 	}
 	console.log(sound_path);
 	playAudioFromUserID(channelID, userID, sound_path);
@@ -199,8 +305,8 @@ function happyfeast(message, channelID, userID){
 }
 
 function findVoiceChannel(server, userID){
-	console.log(JSON.stringify(server,null,4) + " " + userID);
-	console.log("about to loop i");
+	//console.log(JSON.stringify(server,null,4) + " " + userID);
+	//console.log("about to loop i");
 	for(i in iobot.servers[server].channels){
 		if(iobot.servers[server].channels[i].type === "voice")
 			for(j in iobot.servers[server].channels[i].members){
@@ -211,6 +317,7 @@ function findVoiceChannel(server, userID){
 				}
 			}
 	}
+	throw "not found";
 }
 
 function playAudioClip(voice_channel, path){
@@ -241,7 +348,7 @@ function ifReadyToJoinVoice(server, voice_channel, path, callback){
 
 	//if not, then we're ready.
 	if(typeof callback === "function"){
-		console.log(path);
+		//console.log(path);
 		callback(voice_channel, path);
 	}
 }
@@ -356,7 +463,7 @@ function searchservice_youtube(message){
 	yt.setKey(apicredentials.youtubeAPIKEY);
 	var str = message.content;
 	str = str.replace("!youtube ","");
-	console.log(str);
+	//console.log(str);
 	yt.search(str, 1, function(err, result){
 		if(!result || !result.items || result.items.length<1){
 			thebot.sendMessage(message.channel, "TOOO OBSCURE FOR ME");

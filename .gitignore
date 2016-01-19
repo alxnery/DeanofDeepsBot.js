@@ -5,6 +5,10 @@ apiauth.json
 #sounds
 /sounds/*.mp3
 
+#templateStructures
+simpleResponses.json
+sounds_list.json
+
 #temp
 tenc
 
