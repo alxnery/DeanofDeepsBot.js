@@ -1,4 +1,25 @@
+/*
+****************************************************************************************
+	BEGIN WITH BASIC HEADER GUARDS AND REQUIRES
+	Managing my json files manually without persistdb so try catch guards are required
+****************************************************************************************
+*/
 
+var fs = require('fs');
+
+//discord.io tempflag
+var IOEnable = true;
+
+//temp flag for checking API AVAILABILITY
+var APIKEYSFOUND = {
+		youtube : false,
+		giphy : false
+	}
+
+//static private string SOUND_ROOT
+var sound_root = "./sounds/";
+
+//check for discord.js
 try{
 	var Discord = require('discord.js');
 } catch(e){
@@ -7,8 +28,6 @@ try{
 }
 
 //check for discord.io
-var IOEnable = true;
-
 try{
 	var IODiscord = require('discord.io');
 } catch(e){
@@ -16,13 +35,40 @@ try{
 	console.log("Install discord.io required for voice function");
 }
 
-var fs = require('fs');
+//require for the auth information
+try{
+	var credentials = require('./auth.json');
+} catch(e){
+	console.log("auth.json in the form of {\"email\" : \"\", \"password\": \"\" is required}");
+	console.log("AUTO-GENERATING EXAMPLE NOW");
+	var authority = {
+		email : "foobar@example.com",
+		password: "foobaz",
+	};
+	fs.writeFile("./auth.json", JSON.stringify(authority,null,8), function(){ 
+		console.log("Default auth.json created, please fill in info");
+		process.exit();
+	});		
+}
 
-var APIKEYSFOUND = {
-		youtube : false,
-		giphy : false
-	}
+//require for simple_responses.json, if not generate one
+try{
+	var simpleres = require('./simpleResponses.json');
+} catch(e) {
+	var example = {
+		items : [{
+			Event : "!bot",
+			Usage : "<default simpleResponse>",
+			MessageContent : "default simpleResponse",
+			tts : false
+			}]
+		};
+	fs.writeFile("./simpleResponses.json", JSON.stringify(example,null,8), function(){ 
+		console.log("Default simpleResponses.json created");
+	});
+}
 
+//check for sounds_list, if not generate one
 try{
 	var sound_list = require('./sounds_list.json');
 	//console.log(JSON.stringify(sound_list, null, 4));
@@ -45,8 +91,7 @@ try{
 
 }
 
-var sound_root = "./sounds/";
-
+//require for the youtube_section
 try{
 	var apicredentials = require('./apiauth.json');
 	var youtube_node = require('youtube-node');
@@ -57,21 +102,7 @@ try{
 	APIKEYSFOUND.youtube = false;
 }
 
-try{
-	var credentials = require('./auth.json');
-} catch(e){
-	console.log("auth.json in the form of {\"email\" : \"\", \"password\": \"\" is required}");
-	console.log("AUTO-GENERATING EXAMPLE NOW");
-	var authority = {
-		email : "foobar@example.com",
-		password: "foobaz",
-	};
-	fs.writeFile("./auth.json", JSON.stringify(authority,null,8), function(){ 
-		console.log("Default auth.json created, please fill in info");
-		process.exit();
-	});		
-}
-
+//required for the giphy module
 try{
 	var giphy = require('giphy-api')();
 	APIKEYSFOUND.giphy = true;
@@ -80,29 +111,9 @@ try{
 	APIKEYSFOUND.giphy = false;
 }
 
-try{
-	var simpleres = require('./simpleResponses.json');
-} catch(e) {
-	var example = {
-		items : [{
-			Event : "!bot",
-			Usage : "<default simpleResponse>",
-			MessageContent : "default simpleResponse",
-			tts : false
-			}]
-		};
-	fs.writeFile("./simpleResponses.json", JSON.stringify(example,null,8), function(){ 
-		console.log("Default simpleResponses.json created");
-	});
-}
-
-var thebot = new Discord.Client();
-
-//var commands = require('./commands.js');
-
-//add querymethods for wolfram, google, yahoo
-
+//login to the bots
 if(credentials){
+	var thebot = new Discord.Client();
 	thebot.login(credentials.email, credentials.password);
 	if(IOEnable == true){
 		var iobot = new IODiscord({
@@ -113,6 +124,12 @@ if(credentials){
 	}
 }
 
+/*
+****************************************************************************************
+	LISTENERS AND EVENTS
+		Listeners for the IOBOT for audio, and the jsBot for message replies
+****************************************************************************************
+*/
 thebot.on("ready", function(){
 	console.log("MessageBot Serving Replies Now!");
 });
@@ -131,12 +148,15 @@ iobot.on("message", function(user,userID,channelID,message,rawEvent){
 		switch(args){
 			case "!happyfeast":
 				happyfeast(message,channelID,userID);
+				deletefromChannel(iobot, rawEvent);
 				break;
 			case "!helicopter":
 				playAudioFromUserID(channelID, userID, "./sounds/helicopter.mp3");
+				deletefromChannel(iobot, rawEvent);
 				break;
 			case "!sound":
 				processSoundRequest(message,channelID,userID);
+				deletefromChannel(iobot, rawEvent);
 				break;
 		}
 
@@ -191,6 +211,13 @@ thebot.on("message", function(message){
 		}
 });
 
+/*
+****************************************************************************************
+	FUNCTIONS FOR CALL-later to be loaded into an obect
+		Calls coming directly from the main listeners
+****************************************************************************************
+*/
+
 function playAudioFromUserID(channelID, userID, path){
 	var server = iobot.serverFromChannel(channelID);
 	try{
@@ -231,130 +258,6 @@ function processSoundRequest(message, channelID, userID){
 	}
 }
 
-function listSounds(channelID){
-	var base_group = sound_list,
-	cur, names,
-	groupkeys, name;
-
-	var outputString = "\n";
-
-	var i, j, k;
-	//loop through groups
-	groupkeys = Object.keys(base_group);
-	for(i=0; i<groupkeys.length; i+=1){
-		
-		//add groupname -
-		outputString += "**" + groupkeys[i] + "**" + "--\n";
-		//get keys for clip list
-		namekeys = Object.keys(base_group[groupkeys[i]]);
-		//cur is the reference point of the group were in 
-		cur = base_group[groupkeys[i]];
-
-		//loop through clip list
-		for(k=0; k<namekeys.length; k+= 1){
-			//add clip name
-			outputString += namekeys[k] + "- ";
-			names = cur[namekeys[k]].aliases;
-			//loop through aliases
-			for(j=0; j<names.length; j+=1){
-				//add the alias + " "
-				outputString += names[j] + " ";
-			}
-			//add new line after the aliases
-			outputString += "\n";
-		}
-	}
-	thebot.sendMessage(channelID, outputString);
-}
-
-//attempt to find a !sound request using the sounds_list.json
-//each element is part of group.clip.(path || aliases);
-//Hard loops used for speed, stop when things are found, no foreach
-function findSoundAndPlay(message, channelID, userID){
-	var group_found = false,
-	found = false,
-	sound_found = false,
-	sound_path = sound_root, 
-	base_group = sound_list, 
-	sounds_group, sounds_final,
-	cur, names;
-
-	var requestMessage = message;
-	requestMessage = requestMessage.split(" ");
-	requestMessage.shift();
-
-	//request a group folder
-	if(requestMessage.length > 0){
-		//if the request is invalid
-		if(isKeyPresent(base_group, requestMessage[0])){
-			//requested key is present, go go
-			group_found = true;
-			sounds_group = base_group[requestMessage[0]];
-
-			//check if the second param is here
-			//if not we skip down and pick at random
-			if(requestMessage.length > 1){
-			//console.log("Trying " + requestMessage[1]);
-			var keys = Object.keys(sounds_group);
-			var i, j;
-			//loop through keys
-			for(i=0; i<keys.length && (!found); i+=1){
-				cur = sounds_group[keys[i]];
-				names = cur.aliases;
-				//loop through aliases
-				for(j=0; j<names.length && (!found); j+=1){
-					if(requestMessage[1] === names[j]){
-						sound_path += cur.path;
-						found = true;
-						sound_found = true;
-						}
-					}
-				}
-			}
-
-		}
-	}
-
-	//If the lookup failed at the group level, or sound level, we catch and remediate here
-
-	//if we failed to match the group get one at random
-	//this will be fed to establishing the sound clip
-	if(group_found == false){
-			//pick a random group and random folder
-			//get a random group from sounds
-			sounds_group = base_group[pickRandomKey(base_group)];
-			group_found = true;
-	}
-
-	//if we failed to match the sound we get one here at random...
-	//sounds_group is guaranteed to be established by now either at random or by choice.
-	if(sound_found == false){
-			//get a random sounds from group
-			sounds_final = sounds_group[pickRandomKey(sounds_group)];
-			//append to the static sound_root
-			sound_path +=  sounds_final.path;
-			sound_found = true;
-	}
-
-	playAudioFromUserID(channelID, userID, sound_path);
-}
-
-function isKeyPresent(obj, str){
-	var keys = Object.keys(obj), i;
-	for(i=0; i<keys.length; i+=1){
-		if(keys[i] === str)
-			return true;
-	}
-
-	return false;
-}
-
-function pickRandomKey(obj){
-	var keys = Object.keys(obj), i;
-	var randnum = Math.floor(Math.random() * keys.length);
-	return keys[randnum];	
-}
-
 function happyfeast(message, channelID, userID){
 	var keys = Object.keys(sound_list.happyfeast),
 	i=0, found = false, sound_path = sound_root, cur, names;
@@ -389,22 +292,6 @@ function happyfeast(message, channelID, userID){
 
 }
 
-function findVoiceChannel(server, userID){
-	//console.log(JSON.stringify(server,null,4) + " " + userID);
-	//console.log("about to loop i");
-	for(i in iobot.servers[server].channels){
-		if(iobot.servers[server].channels[i].type === "voice")
-			for(j in iobot.servers[server].channels[i].members){
-				//console.log("member found");
-				if(iobot.servers[server].channels[i].members[j].user_id === userID){
-					console.log(iobot.servers[server].channels[i].members[j].channel_id);
-					return iobot.servers[server].channels[i].members[j].channel_id;
-				}
-			}
-	}
-	throw "not found";
-}
-
 function playAudioClip(voice_channel, path){
 	iobot.joinVoiceChannel(voice_channel, function(){
 		iobot.getAudioContext({ channel : voice_channel, stereo:true}, function(stream){
@@ -413,29 +300,11 @@ function playAudioClip(voice_channel, path){
 
 			setTimeout(function(){
 			iobot.leaveVoiceChannel(voice_channel);
-			},1000);
+			},600);
 
 			});
 		});
 	});
-}
-
-function ifReadyToJoinVoice(server, voice_channel, path, callback){
-	for(i in iobot.servers[server].channels){
-		for(j in iobot.servers[server].channels[i].members){
-			if(iobot.servers[server].channels[i].members[j].user_id === iobot.id){
-				//if we find OURSELVES already in the channel return false
-				console.log("found self in server " + server + " channel " + voice_channel + "playback failed for " + path);
-				return false;
-			}
-		}
-	}
-
-	//if not, then we're ready.
-	if(typeof callback === "function"){
-		//console.log(path);
-		callback(voice_channel, path);
-	}
 }
 
 function checkResponses(message){
@@ -630,6 +499,176 @@ function aestheticConvert(message){
 function invalidparams(message){
 	thebot.sendMessage(message.channel, message.content.slice(1).concat(" is an invalid parameter, try !hhelp."));
 };
+
+
+function findVoiceChannel(server, userID){
+	//console.log(JSON.stringify(server,null,4) + " " + userID);
+	//console.log("about to loop i");
+	for(i in iobot.servers[server].channels){
+		if(iobot.servers[server].channels[i].type === "voice")
+			for(j in iobot.servers[server].channels[i].members){
+				//console.log("member found");
+				if(iobot.servers[server].channels[i].members[j].user_id === userID){
+					console.log(iobot.servers[server].channels[i].members[j].channel_id);
+					return iobot.servers[server].channels[i].members[j].channel_id;
+				}
+			}
+	}
+	throw "not found";
+}
+
+function listSounds(channelID){
+	var base_group = sound_list,
+	cur, names,
+	groupkeys, name;
+
+	var outputString = "\n";
+
+	var i, j, k;
+	//loop through groups
+	groupkeys = Object.keys(base_group);
+	for(i=0; i<groupkeys.length; i+=1){
+		
+		//add groupname -
+		outputString += "**" + groupkeys[i] + "**" + "--\n";
+		//get keys for clip list
+		namekeys = Object.keys(base_group[groupkeys[i]]);
+		//cur is the reference point of the group were in 
+		cur = base_group[groupkeys[i]];
+
+		//loop through clip list
+		for(k=0; k<namekeys.length; k+= 1){
+			//add clip name
+			outputString += namekeys[k] + "- ";
+			names = cur[namekeys[k]].aliases;
+			//loop through aliases
+			for(j=0; j<names.length; j+=1){
+				//add the alias + " "
+				outputString += names[j] + " ";
+			}
+			//add new line after the aliases
+			outputString += "\n";
+		}
+	}
+	thebot.sendMessage(channelID, outputString);
+}
+
+//attempt to find a !sound request using the sounds_list.json
+//each element is part of group.clip.(path || aliases);
+//Hard loops used for speed, stop when things are found, no foreach
+function findSoundAndPlay(message, channelID, userID){
+	var group_found = false,
+	found = false,
+	sound_found = false,
+	sound_path = sound_root, 
+	base_group = sound_list, 
+	sounds_group, sounds_final,
+	cur, names;
+
+	var requestMessage = message;
+	requestMessage = requestMessage.split(" ");
+	requestMessage.shift();
+
+	//request a group folder
+	if(requestMessage.length > 0){
+		//if the request is invalid
+		if(isKeyPresent(base_group, requestMessage[0])){
+			//requested key is present, go go
+			group_found = true;
+			sounds_group = base_group[requestMessage[0]];
+
+			//check if the second param is here
+			//if not we skip down and pick at random
+			if(requestMessage.length > 1){
+			//console.log("Trying " + requestMessage[1]);
+			var keys = Object.keys(sounds_group);
+			var i, j;
+			//loop through keys
+			for(i=0; i<keys.length && (!found); i+=1){
+				cur = sounds_group[keys[i]];
+				names = cur.aliases;
+				//loop through aliases
+				for(j=0; j<names.length && (!found); j+=1){
+					if(requestMessage[1] === names[j]){
+						sound_path += cur.path;
+						found = true;
+						sound_found = true;
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	//If the lookup failed at the group level, or sound level, we catch and remediate here
+
+	//if we failed to match the group get one at random
+	//this will be fed to establishing the sound clip
+	if(group_found == false){
+			//pick a random group and random folder
+			//get a random group from sounds
+			sounds_group = base_group[pickRandomKey(base_group)];
+			group_found = true;
+	}
+
+	//if we failed to match the sound we get one here at random...
+	//sounds_group is guaranteed to be established by now either at random or by choice.
+	if(sound_found == false){
+			//get a random sounds from group
+			sounds_final = sounds_group[pickRandomKey(sounds_group)];
+			//append to the static sound_root
+			sound_path +=  sounds_final.path;
+			sound_found = true;
+	}
+
+	playAudioFromUserID(channelID, userID, sound_path);
+}
+
+function ifReadyToJoinVoice(server, voice_channel, path, callback){
+	for(i in iobot.servers[server].channels){
+		for(j in iobot.servers[server].channels[i].members){
+			if(iobot.servers[server].channels[i].members[j].user_id === iobot.id){
+				//if we find OURSELVES already in the channel return false
+				console.log("found self in server " + server + " channel " + voice_channel + "playback failed for " + path);
+				return false;
+			}
+		}
+	}
+
+	//if not, then we're ready.
+	if(typeof callback === "function"){
+		//console.log(path);
+		callback(voice_channel, path);
+	}
+}
+
+function isKeyPresent(obj, str){
+	var keys = Object.keys(obj), i;
+	for(i=0; i<keys.length; i+=1){
+		if(keys[i] === str)
+			return true;
+	}
+
+	return false;
+}
+
+function pickRandomKey(obj){
+	var keys = Object.keys(obj), i;
+	var randnum = Math.floor(Math.random() * keys.length);
+	return keys[randnum];	
+}
+
+function sendMessageCheck(channel, message){
+
+}
+
+function deletefromChannel(bot, rawEvent){
+	bot.deleteMessage(	{
+					channel:rawEvent.d.channel_id,
+					messageID:rawEvent.d.id
+				});
+}
 
 function insertAtIndex(str, index, val){
 	return str.substr(0, index) + val + str.substr(index);
