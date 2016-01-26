@@ -147,11 +147,15 @@ iobot.on("message", function(user,userID,channelID,message,rawEvent){
 
 		switch(args){
 			case "!happyfeast":
-				happyfeast(message,channelID,userID);
+				specificSoundRequest("happyfeast",message,channelID,userID);
 				deletefromChannel(iobot, rawEvent);
 				break;
 			case "!helicopter":
 				playAudioFromUserID(channelID, userID, "./sounds/helicopter.mp3");
+				deletefromChannel(iobot, rawEvent);
+				break;
+			case "!1p":
+				specificSoundRequest("random onepunch", message, channelID, userID);
 				deletefromChannel(iobot, rawEvent);
 				break;
 			case "!sound":
@@ -256,40 +260,6 @@ function processSoundRequest(message, channelID, userID){
 	else{
 		findSoundAndPlay(message, channelID, userID);
 	}
-}
-
-function happyfeast(message, channelID, userID){
-	var keys = Object.keys(sound_list.happyfeast),
-	i=0, found = false, sound_path = sound_root, cur, names;
-
-	var requestMessage = message;
-	requestMessage = requestMessage.split(" ");
-	requestMessage.shift();
-
-	if(requestMessage.length > 0){
-
-		for(i=0; i<keys.length && (!found); i+=1){
-
-			cur = sound_list.happyfeast[keys[i]];
-			names = cur.aliases;
-
-			for(j=0; j<names.length && (!found); j+=1){
-				if(requestMessage[0].toLowerCase() === names[j]){
-					sound_path += cur.path;
-					found = true;
-				}
-
-			}
-		}
-	}
-
-	if(!found){
-		var randnum = Math.floor(Math.random() * (keys.length));
-		sound_path += sound_list.happyfeast[keys[randnum]].path;
-	}
-	console.log(sound_path);
-	playAudioFromUserID(channelID, userID, sound_path);
-
 }
 
 function playAudioClip(voice_channel, path){
@@ -517,7 +487,7 @@ function findVoiceChannel(server, userID){
 	throw "not found";
 }
 
-function listSounds(channelID){
+function listSounds(channelID, option){
 	var base_group = sound_list,
 	cur, names,
 	groupkeys, name;
@@ -590,7 +560,7 @@ function findSoundAndPlay(message, channelID, userID){
 				//loop through aliases
 				for(j=0; j<names.length && (!found); j+=1){
 					if(requestMessage[1] === names[j]){
-						sound_path += cur.path;
+						sound_path = cur.path;
 						found = true;
 						sound_found = true;
 						}
@@ -618,10 +588,11 @@ function findSoundAndPlay(message, channelID, userID){
 			//get a random sounds from group
 			sounds_final = sounds_group[pickRandomKey(sounds_group)];
 			//append to the static sound_root
-			sound_path +=  sounds_final.path;
+			sound_path = sounds_final.path;
 			sound_found = true;
 	}
 
+	console.log(sound_path);
 	playAudioFromUserID(channelID, userID, sound_path);
 }
 
@@ -659,8 +630,27 @@ function pickRandomKey(obj){
 	return keys[randnum];	
 }
 
-function sendMessageCheck(channel, message){
+function sendMessageCheck(channel, _message){
 
+	var message = _message;
+	var temp = message;
+	function chopMessage(){
+		setTimeout(function(){
+		var removed = temp.substr(1999);
+		console.log(removed);
+		console.log(temp);
+
+		if(removed.length == 0)
+			return
+			else{
+			console.log(removed);
+			thebot.sendMessage(channel, removed);
+			chopMessage();	
+			}
+		}, 500);	
+	}
+
+	chopMessage();
 }
 
 function deletefromChannel(bot, rawEvent){
@@ -673,3 +663,16 @@ function deletefromChannel(bot, rawEvent){
 function insertAtIndex(str, index, val){
 	return str.substr(0, index) + val + str.substr(index);
 };
+
+function specificSoundRequest(delimeter, message, channelID, userID){
+	var msg = message;
+	msg = msg.split(" ");
+	msg.shift();
+
+	msg.unshift(delimeter);
+	msg.unshift("!sound");
+
+	msg = msg.join(" ");
+	console.log(msg);
+	processSoundRequest(msg, channelID, userID);
+}

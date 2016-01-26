@@ -3,7 +3,7 @@ auth.json
 apiauth.json
 
 #sounds
-/sounds/*.mp3
+/sounds/
 
 #templateStructures
 simpleResponses.json
