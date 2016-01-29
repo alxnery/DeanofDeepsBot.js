@@ -68,9 +68,12 @@ try{
 	});
 }
 
-//check for sounds_list, if not generate one
+var sound_list = {};
+var sound_builder = require('./sound_builder_v2.js');
+sound_builder.buildList(function(){
+	//check for sounds_list, if not generate one
 try{
-	var sound_list = require('./sounds_list.json');
+	sound_list = require('./sounds_list.json');
 	//console.log(JSON.stringify(sound_list, null, 4));
 } catch(e){
 	console.log("To add and play mp3's, install ffmpeg or avconv "+
@@ -90,6 +93,9 @@ try{
 	});
 
 }
+});
+
+
 
 //require for the youtube_section
 try{
@@ -226,7 +232,7 @@ function playAudioFromUserID(channelID, userID, path){
 	var server = iobot.serverFromChannel(channelID);
 	try{
 	var voice_channel = findVoiceChannel(server, userID);
-	ifReadyToJoinVoice(server, voice_channel, path, playAudioClip);
+	ifReadyToJoinVoice(voice_channel, path, playAudioClip);
 	}
 	catch(e){
 		console.log("channel not found");
@@ -520,7 +526,7 @@ function listSounds(channelID, option){
 			outputString += "\n";
 		}
 	}
-	thebot.sendMessage(channelID, outputString);
+	sendMessageCheck(channelID, outputString);
 }
 
 //attempt to find a !sound request using the sounds_list.json
@@ -596,13 +602,15 @@ function findSoundAndPlay(message, channelID, userID){
 	playAudioFromUserID(channelID, userID, sound_path);
 }
 
-function ifReadyToJoinVoice(server, voice_channel, path, callback){
-	for(i in iobot.servers[server].channels){
-		for(j in iobot.servers[server].channels[i].members){
-			if(iobot.servers[server].channels[i].members[j].user_id === iobot.id){
-				//if we find OURSELVES already in the channel return false
-				console.log("found self in server " + server + " channel " + voice_channel + "playback failed for " + path);
-				return false;
+function ifReadyToJoinVoice(voice_channel, path, callback){
+	for(server in iobot.servers){
+		for(i in iobot.servers[server].channels){
+			for(j in iobot.servers[server].channels[i].members){
+				if(iobot.servers[server].channels[i].members[j].user_id === iobot.id){
+					//if we find OURSELVES already in the channel return false
+					console.log("found self in server " + server + " channel " + voice_channel + "playback failed for " + path);
+					return false;
+				}
 			}
 		}
 	}
@@ -632,25 +640,25 @@ function pickRandomKey(obj){
 
 function sendMessageCheck(channel, _message){
 
-	var message = _message;
-	var temp = message;
-	function chopMessage(){
-		setTimeout(function(){
-		var removed = temp.substr(1999);
-		console.log(removed);
-		console.log(temp);
+	var st1 = _message;
+	var st2 = st1;
 
-		if(removed.length == 0)
+	function sendcheck(){
+		setTimeout(function(){
+
+		st2 = st1.substr(0,1999);
+		st1 = st1.slice(1999);
+
+		if(st2.length == 0)
 			return
-			else{
-			console.log(removed);
-			thebot.sendMessage(channel, removed);
-			chopMessage();	
+		else{
+			thebot.sendMessage(channel, st2);
+			sendcheck();	
 			}
 		}, 500);	
 	}
 
-	chopMessage();
+	sendcheck();
 }
 
 function deletefromChannel(bot, rawEvent){

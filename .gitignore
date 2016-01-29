@@ -8,6 +8,8 @@ apiauth.json
 #templateStructures
 simpleResponses.json
 sounds_list.json
+sound_builder.js
+commands.js
 
 #temp
 tenc
