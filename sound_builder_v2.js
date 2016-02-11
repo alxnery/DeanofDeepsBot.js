@@ -4,21 +4,27 @@
 	//loadlist
 	this.loadList = function (){
 
-	try{
-	this.sounds_list = require('./sounds_list.json');
-	//console.log("sounds list imported");
-	} catch(e){
-	fs.writeFile("./sounds_list.json", 
-		JSON.stringify(this.sounds,null,4), 
-		function(err){
-			console.log("sounds_list.json populated, rerun program");
-			this.sounds_list = require('./sounds_list.json');
-			process.exit();
-		});
+		try{
+		this.sounds_list = require('./sounds_list.json');
+		//console.log("sounds list imported");
+		return this.sounds_list;
+		} catch(e){
+		this.temp = {};
+		fs.writeFile("./sounds_list.json", 
+			"{}", 
+			function(err){
+				console.log("sounds_list.json populated, rerun program");
+				this.sounds_list = require('./sounds_list.json');
+				process.exit();
+			});
+		}
 	}
+
+this.init = function(filepath, sounds_list){
 	//variables
+	this.sounds_list = sounds_list;
 	this.mp3 = /.*mp3/i;
-	this.base_dir = "./sounds/";
+	this.base_dir = filepath;
 	this.sounds = this.sounds_list;
 
 	if(!this.isKeyPresent(this.sounds, "random")){
@@ -167,9 +173,19 @@
 
 	}
 
-	this.buildList = function(callback){
+	this.buildList = function(filepath, callback){
 			var fs = fs || require('fs');
-			this.loadList();
+			try{
+					this.sounds_list = require('./sounds_list.json');
+			} catch(e){
+					fs.writeFile("./sounds_list.json", 
+						"{}", 
+						function(err){
+							this.sounds_list = require('./sounds_list.json');
+						});
+			}
+			var a = this.loadList();
+			this.init(filepath, a);
 			this.startScan(this.base_dir, this.random, this.sounds, this.sounds_list);
 		//	console.log(JSON.stringify(this.sounds, null, 2));
 

@@ -70,29 +70,9 @@ try{
 
 var sound_list = {};
 var sound_builder = require('./sound_builder_v2.js');
-sound_builder.buildList(function(){
-	//check for sounds_list, if not generate one
-try{
-	sound_list = require('./sounds_list.json');
-	//console.log(JSON.stringify(sound_list, null, 4));
-} catch(e){
-	console.log("To add and play mp3's, install ffmpeg or avconv "+
-		"then drop files in the sounds folder, and edit the sounds_list.json file");
-	console.log("this format is group.sound.(aliases && path) " + 
-		"where aliases are an array of names you would like to use for the clip in question");
-	var example_sound = {
-		group1 : {
-			sound1 : {
-				aliases : ["sound1", "s1"],
-				path : "sound1.mp3"
-			}
-		}
-	}
-	fs.writeFile("./sounds_list.json", JSON.stringify(example_sound,null,8), function(){ 
-		console.log("It is clunky for now but allows a fun lookup scheme, don't worry, I just created a template");
-	});
 
-}
+sound_builder.buildList("./sounds/Dropbox/sounds/", function(){
+	sound_list = require('./sounds_list.json');
 });
 
 
@@ -116,6 +96,17 @@ try{
 	console.log("giphy api not found");
 	APIKEYSFOUND.giphy = false;
 }
+
+try{
+	var IDfromhandle = require("./SteamAPI.js");
+	APIKEYSFOUND.dota = true;
+}catch(e){
+	console.log('D2finder not found');
+	console.log(e);
+	APIKEYSFOUND.dota = false;
+}
+
+	var D2finder = IDfromhandle(apicredentials.steamAPIKEY);
 
 //login to the bots
 if(credentials){
@@ -203,6 +194,9 @@ thebot.on("message", function(message){
 			case "!define":
 				newCommand(message);
 				break;
+			case "!dota":
+				if(APIKEYSFOUND.dota == true)
+					searchservice_dota(message);
 			default:
 				checkResponses(message);
 			}
@@ -258,6 +252,20 @@ function processSoundRequest(message, channelID, userID){
 				"i.e !sound happyfeast rag which will query happyfeast for a rag clip\n" +
 				"also try !sound --list for a list"; 
 				thebot.sendMessage(channelID, msg);
+				break;
+			case "reload":
+				sound_builder.buildList("./sounds/Dropbox/sounds/", function(){
+					sound_list = require('./sounds_list.json');
+					//thebot.sendMessage(channelID, "list repopulated");
+				});
+				break;
+			case "hardreload":
+				fs.writeFile('./sounds_list.json',"{}",function(){
+					sound_builder.buildList("./sounds/Dropbox/sounds/", function(){
+					sound_list = require('./sounds_list.json');
+					//thebot.sendMessage(channelID, "hard list repopulated");
+					});
+				});
 				break;
 			default :
 				thebot.sendMessage(channelID, "try --list or --help");
@@ -429,6 +437,25 @@ function searchservice_giphy(message){
 		thebot.sendMessage(message.channel, res.data[randnum].url);
 		}
 	});
+}
+
+function searchservice_dota(message){
+	console.log("starting search : " + message.content);
+	var str = message.content;
+	str = str.replace("!dota ", "");
+	str = str.split(" ");
+	str = str.shift();
+
+	var match = "";
+
+	D2finder.getID(str, function(err, playerid){
+		D2finder.getLastMatchID(playerid, function(err, matchid){
+			console.log(matchid);
+			thebot.sendMessage(message.channel, "http://www.dotabuff.com/matches/" + matchid.matchid);
+		});
+	});
+
+	console.log(match);
 }
 
 function ttsformat(message){
